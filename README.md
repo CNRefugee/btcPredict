@@ -6,6 +6,10 @@ Given that Binance is the largest cryptocurrency trading platform and provided w
 
 All the data are obtained from binance
 
+start 2017-08-22
+end 2024-03-09
+interval 4h
+
 ## 2.Model Designing and Training
 
 ## 3.Test and Evaluation
