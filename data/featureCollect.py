@@ -3,26 +3,15 @@
 # 2.MACD (Moving Average Convergence Divergence)
 # 3.RSI (Relative Strength Index)
 # 4.Bollinger Bands (BOLL)
-from taipy.gui import Gui
-import taipy.gui.builder as tgb
-import plotly.graph_objects as go
 
-# list_to_display = [100/x for x in range(1, 100)]
-# fig = go.Figure(data=go.Scatter(y=list_to_display))
-#
-# with tgb.Page() as page:
-#     tgb.chart(figure="{fig}")
-#
-# Gui(page).run()
 from common.constants import BTC, ETH, BNB
 from dataSpyder import fileProcessor
 from dataSpyder.fileProcessor import read_data_file
 import pandas as pd
 
-symbol = BNB
+symbol = BTC
+DateInterval = '4h'  # 4h or multiple of 4h
 filepath = './processedData/' + symbol + '.pkl'
-
-DateInterval = '1D' # 4h or multiple of 4h
 
 df = read_data_file(filepath)
 start = df.index[0]
@@ -34,7 +23,6 @@ df = df.reindex(date_range)
 df['EMA_7'] = df['c'].ewm(span=7, adjust=False).mean()
 df['EMA_25'] = df['c'].ewm(span=25, adjust=False).mean()
 df['EMA_99'] = df['c'].ewm(span=99, adjust=False).mean()
-
 
 # 2.MACD related
 # Calculate the short-term exponential moving average (EMA)
@@ -54,14 +42,12 @@ df['MACD_above_Signal'] = (df['MACD'] > df['Signal_Line']).astype(int)
 # Create a feature for the difference between MACD and the signal line
 df['MACD_diff_Signal'] = df['MACD'] - df['Signal_Line']
 
-
 # 3. RSI
 delta = df['c'].diff(1)
 gain = (delta.where(delta > 0, 0)).rolling(window=14, min_periods=1).mean()
 loss = (-delta.where(delta < 0, 0)).rolling(window=14, min_periods=1).mean()
 rs = gain / loss
 df['RSI'] = 100 - (100 / (1 + rs))
-
 
 # 4.Bollinger Bands
 period = 20
@@ -72,6 +58,6 @@ df['Upper_Band'] = df['Middle_Band'] + (df['STD'] * multiplier)
 df['Lower_Band'] = df['Middle_Band'] - (df['STD'] * multiplier)
 
 df = df[20:]
-path = './dataWithCalculatedFeatures/' + symbol
+path = './dataWithCalculatedFeatures/' + symbol + '_' + DateInterval
 fileProcessor.save_dataframe_to_pickle(df, path + '.pkl')
 fileProcessor.save_dataframe_to_csv(df, path + '.csv')
