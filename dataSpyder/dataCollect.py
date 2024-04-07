@@ -5,7 +5,8 @@ import json  # for parsing what binance sends back to us
 import pandas as pd  # for storing and manipulating the data we get back
 from datetime import datetime, timedelta
 import datetime as dt  # for dealing with times
-import dataSaver
+import fileProcessor
+from common.constants import END_DATE, START_DATE
 
 root_url = 'https://api.binance.com/api/v3/klines'
 
@@ -23,13 +24,8 @@ def get_bars(symbol, interval='4h', startTime='1546300800000', endTime='18083564
     df.index = [dt.datetime.fromtimestamp(x / 1000.0) for x in df.close_time]
     return df
 
-
-def get_dataset(start_date, end_date, symbol, interval, time_interval):
-    return dataset
-
-
-start_date = datetime(2017, 8, 22)
-end_date = datetime(2024, 3, 9)
+start_date = START_DATE
+end_date = END_DATE
 symbol = 'BNBUSDT'
 interval = '4h'
 millisecond = 1000
@@ -48,14 +44,11 @@ while current_date <= end_date:
         dataset = raw_data
     else:
         dataset = pd.concat([dataset, raw_data], ignore_index=False)
-    # start = current_date.strftime("%Y-%m-%d")
-    # end = (current_date + time_interval).strftime("%Y-%m-%d")
-    # print('fetch data from ' + start + ' to ' + end)
     current_date += time_interval
 
 current_date -= time_interval
 start_timestamp = int(datetime.timestamp(current_date) * millisecond)
-end_timestamp = int(datetime.timestamp(datetime.now()) * millisecond)
+end_timestamp = int(datetime.timestamp(end_date) * millisecond)
 raw_data = get_bars(symbol=symbol, interval=interval, startTime=str(start_timestamp),
                     endTime=str(end_timestamp))
 if dataset is None:
@@ -63,6 +56,6 @@ if dataset is None:
 else:
     dataset = pd.concat([dataset, raw_data], ignore_index=False)
 
-filename = symbol
-dataSaver.save_dataframe_to_pickle(dataset, filename)
-dataSaver.save_dataframe_to_csv(dataset, filename)
+path = '../data/rawData/' + symbol
+fileProcessor.save_dataframe_to_pickle(dataset, path + '.pkl')
+fileProcessor.save_dataframe_to_csv(dataset, path + '.csv')
